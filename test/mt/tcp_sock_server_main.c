@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
     int recv_result = 0;
     char buf[1024] = {0};
 
-    ocnet_sock = ocnet_socket_open(KKT_SOCK_TCP, 0, 10688);
-    if (KKT_SOCKET_INVALID == ocnet_sock) {
+    ocnet_sock = ocnet_socket_open(OCNET_SOCK_TCP, 0, 10688);
+    if (OCNET_SOCKET_INVALID == ocnet_sock) {
         return -1;
     }
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     }
 
     ocnet_conn = ocnet_socket_accept(ocnet_sock, &ip, &port);
-    if (KKT_CONN_INVALID != ocnet_conn) {
+    if (OCNET_CONN_INVALID != ocnet_conn) {
         printf("Connect from: %d.%d.%d.%d:%d\n",
                 ip >> 24 & 0xff, ip >> 16 & 0xff,
                 ip >> 8 & 0xff, ip & 0xff, port);

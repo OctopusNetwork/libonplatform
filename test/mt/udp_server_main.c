@@ -12,8 +12,8 @@ int main(int argc, char *argv[])
     ocnet_port_t port;
     int recv_result = 0;
 
-    ocnet_sock = ocnet_socket_open(KKT_SOCK_UDP, 0, 10688);
-    if (KKT_SOCKET_INVALID == ocnet_sock) {
+    ocnet_sock = ocnet_socket_open(OCNET_SOCK_UDP, 0, 10688);
+    if (OCNET_SOCKET_INVALID == ocnet_sock) {
         return -1;
     }
 

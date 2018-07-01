@@ -11,14 +11,14 @@ int main(int argc, char *argv[])
     int recv_result = 0;
     char buf[1024] = {0};
 
-    ocnet_sock = ocnet_socket_open(KKT_SOCK_TCP, 0, 10687);
-    if (KKT_SOCKET_INVALID == ocnet_sock) {
+    ocnet_sock = ocnet_socket_open(OCNET_SOCK_TCP, 0, 10687);
+    if (OCNET_SOCKET_INVALID == ocnet_sock) {
         return -1;
     }
 
     ocnet_conn = ocnet_socket_connect(ocnet_sock,
             ocnet_iport_parse_ip("127.0.0.1"), 10688);
-    if (ocnet_conn == KKT_CONN_INVALID) {
+    if (ocnet_conn == OCNET_CONN_INVALID) {
         ocnet_socket_close(ocnet_sock);
         return -1;
     } else {
