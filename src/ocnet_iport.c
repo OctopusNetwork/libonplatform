@@ -3,11 +3,6 @@
 
 #include "ocnet_iport.h"
 
-void *ocnet_iport_new(ocnet_ip_t ip, ocnet_port_t port)
-{
-    return NULL;
-}
-
 ocnet_ipvx_t ocnet_iport_get_ipvx_system(void)
 {
     return OCNET_IPV4;
@@ -49,8 +44,4 @@ void ocnet_iport_ip_todesc(ocnet_ip_t ip, char *str, int len)
 void ocnet_iport_port_todesc(ocnet_port_t port, char *str, int len)
 {
     sprintf(str, "%d", port);
-}
-
-void ocnet_iport_del(void *iport)
-{
 }

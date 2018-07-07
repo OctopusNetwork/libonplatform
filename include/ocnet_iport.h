@@ -17,8 +17,6 @@ typedef enum {
 extern "C" {
 #endif
 
-void        *ocnet_iport_new(ocnet_ip_t ip, ocnet_port_t port);
-
 ocnet_ipvx_t ocnet_iport_get_ipvx_system(void);
 ocnet_ipvx_t ocnet_iport_get_ipvx_byip(ocnet_ip_t ip);
 ocnet_ip_t   ocnet_iport_get_ip(void *iport);
@@ -27,8 +25,6 @@ void         ocnet_iport_get_iport_desc(void *iport, char *str, int len);
 ocnet_ip_t   ocnet_iport_parse_ip(const char *str);
 void         ocnet_iport_ip_todesc(ocnet_ip_t ip, char *str, int len);
 void         ocnet_iport_port_todesc(ocnet_port_t port, char *str, int len);
-
-void         ocnet_iport_del(void *iport);
 
 #ifdef __cplusplus
 }
