@@ -9,7 +9,7 @@
 
 #include "ocnet_socket.h"
 
-typedef struct {
+struct ocnet_socket {
     int             fd;
     ocnet_ip_t      ip;
     ocnet_port_t    port;
@@ -17,15 +17,15 @@ typedef struct {
     unsigned short  sin_family;
     int             sock_type;
     int             protocol;
-} ocnet_sockdesc_t;
+};
 
-ocnet_socket_t ocnet_socket_open(ocnet_socktype_t type,
+ocnet_socket_t *ocnet_socket_open(ocnet_socktype_t type,
         ocnet_ip_t ip, ocnet_port_t port)
 {
     int fd = -1;
     struct sockaddr_in addr;
     socklen_t len = sizeof(struct sockaddr);
-    ocnet_sockdesc_t *sock_desc = NULL;
+    ocnet_socket_t *sock_desc = NULL;
     int socktype;
     int protocol;
 
@@ -43,7 +43,7 @@ ocnet_socket_t ocnet_socket_open(ocnet_socktype_t type,
 
     fd = socket(PF_INET, socktype, protocol);
     if (fd < 0) {
-        return OCNET_SOCKET_INVALID;
+        return NULL;
     }
 
 #ifdef SO_NOSIGPIPE
@@ -72,8 +72,8 @@ ocnet_socket_t ocnet_socket_open(ocnet_socktype_t type,
         goto L_ERROR_SOCK_GETNAME;
     }
 
-    sock_desc = (ocnet_sockdesc_t *)ocnet_malloc(
-            sizeof(ocnet_sockdesc_t));
+    sock_desc = (ocnet_socket_t *)ocnet_malloc(
+            sizeof(ocnet_socket_t));
     if (NULL == sock_desc) {
         goto L_ERROR_SOCK_DESC_MALLOC;
     }
@@ -85,7 +85,7 @@ ocnet_socket_t ocnet_socket_open(ocnet_socktype_t type,
     sock_desc->sock_type = socktype;
     sock_desc->protocol = protocol;
 
-    return (ocnet_socket_t)sock_desc;
+    return (ocnet_socket_t *)sock_desc;
 
 L_ERROR_SOCK_DESC_MALLOC:
 L_ERROR_SOCK_GETNAME:
@@ -93,48 +93,48 @@ L_ERROR_SOCK_BIND:
     freeaddrinfo(res);
 L_ERROR_SOCK_GETADDRINFO:
     close(fd);
-    return OCNET_SOCKET_INVALID;
+    return NULL;
 }
 
-ocnet_ip_t ocnet_socket_get_ip(ocnet_socket_t sock)
+ocnet_ip_t ocnet_socket_get_ip(ocnet_socket_t *sock)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         return sock_desc->ip;
     }
 
     return 0;
 }
 
-ocnet_port_t ocnet_socket_get_port(ocnet_socket_t sock)
+ocnet_port_t ocnet_socket_get_port(ocnet_socket_t *sock)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         return sock_desc->port;
     }
 
     return 0;
 }
 
-int ocnet_socket_get_fd(ocnet_socket_t sock)
+int ocnet_socket_get_fd(ocnet_socket_t *sock)
 {
-    ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
     return sock_desc->fd;
 }
 
-void ocnet_socket_close(ocnet_socket_t sock)
+void ocnet_socket_close(ocnet_socket_t *sock)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         close(sock_desc->fd);
         ocnet_free(sock_desc);
     }
 }
 
-int ocnet_socket_listen(ocnet_socket_t sock, int backlog)
+int ocnet_socket_listen(ocnet_socket_t *sock, int backlog)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         if (OCNET_SOCK_TCP == sock_desc->sock_type) {
             return listen(sock_desc->fd, backlog);
         }
@@ -143,12 +143,12 @@ int ocnet_socket_listen(ocnet_socket_t sock, int backlog)
     return -1;
 }
 
-ocnet_conn_t ocnet_socket_accept(ocnet_socket_t sock, ocnet_ip_t *ip, ocnet_port_t *port)
+ocnet_conn_t ocnet_socket_accept(ocnet_socket_t *sock, ocnet_ip_t *ip, ocnet_port_t *port)
 {
-    ocnet_conn_t conn = OCNET_CONN_INVALID;
+    ocnet_conn_t conn = -1;
 
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         struct sockaddr_in addr;
         socklen_t addr_len = sizeof(struct sockaddr_in);
 
@@ -167,18 +167,18 @@ ocnet_conn_t ocnet_socket_accept(ocnet_socket_t sock, ocnet_ip_t *ip, ocnet_port
     return conn;
 }
 
-int ocnet_socket_close_connection(ocnet_socket_t sock, ocnet_conn_t conn)
+int ocnet_socket_close_connection(ocnet_socket_t *sock, ocnet_conn_t conn)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
+    if (NULL != sock && NULL != sock) {
         return close(conn);
     }
     return -1;
 }
 
-ocnet_conn_t ocnet_socket_connect(ocnet_socket_t sock, ocnet_ip_t ip, ocnet_port_t port)
+ocnet_conn_t ocnet_socket_connect(ocnet_socket_t *sock, ocnet_ip_t ip, ocnet_port_t port)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         struct sockaddr_in addr;
         socklen_t addr_len = sizeof(struct sockaddr_in);
 
@@ -191,23 +191,23 @@ ocnet_conn_t ocnet_socket_connect(ocnet_socket_t sock, ocnet_ip_t ip, ocnet_port
         }
     }
 
-    return OCNET_CONN_INVALID;
+    return -1;
 }
 
-int ocnet_socket_send(ocnet_socket_t sock, ocnet_conn_t conn, char *buf, size_t len)
+int ocnet_socket_send(ocnet_socket_t *sock, ocnet_conn_t conn, char *buf, size_t len)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
+    if (NULL != sock && NULL != sock) {
         return send(conn, buf, len, 0);
     }
 
     return -1;
 }
 
-int ocnet_socket_sendto(ocnet_socket_t sock, char *buf, size_t len,
+int ocnet_socket_sendto(ocnet_socket_t *sock, char *buf, size_t len,
         ocnet_ip_t ip, ocnet_port_t port)
 {
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         struct sockaddr_in addr;
         socklen_t addr_len = sizeof(struct sockaddr_in);
 
@@ -222,11 +222,11 @@ int ocnet_socket_sendto(ocnet_socket_t sock, char *buf, size_t len,
     return -1;
 }
 
-int ocnet_socket_recv(ocnet_socket_t sock, ocnet_conn_t conn, char *buf, size_t len)
+int ocnet_socket_recv(ocnet_socket_t *sock, ocnet_conn_t conn, char *buf, size_t len)
 {
     int recvlen = 0;
 
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
+    if (NULL != sock && NULL != sock) {
         recvlen = recv(conn, buf, len, MSG_DONTWAIT);
     }
 
@@ -243,13 +243,13 @@ int ocnet_socket_recv(ocnet_socket_t sock, ocnet_conn_t conn, char *buf, size_t 
     return recvlen;
 }
 
-int ocnet_socket_recvfrom(ocnet_socket_t sock, char *buf, size_t len,
+int ocnet_socket_recvfrom(ocnet_socket_t *sock, char *buf, size_t len,
         ocnet_ip_t *ip, ocnet_port_t *port)
 {
     int result = -1;
 
-    if (NULL != sock && OCNET_SOCKET_INVALID != sock) {
-        ocnet_sockdesc_t *sock_desc = (ocnet_sockdesc_t *)sock;
+    if (NULL != sock && NULL != sock) {
+        ocnet_socket_t *sock_desc = (ocnet_socket_t *)sock;
         struct sockaddr_in addr;
         socklen_t addr_len = sizeof(struct sockaddr_in);
 
